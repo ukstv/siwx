@@ -1,6 +1,6 @@
 {
-  "name": "@siwx/message",
-  "version": "0.0.2",
+  "name": "@siwx/auth",
+  "version": "0.0.1",
   "scripts": {
     "build": "../../node_modules/.bin/tsc -p tsconfig.build.json",
     "test": "../../node_modules/.bin/tsm ../../node_modules/uvu/bin.js . .+\\.test\\.ts",
@@ -22,10 +22,8 @@
     }
   },
   "dependencies": {
-    "codeco": "^1.1.4"
+    "@siwx/message": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.3.1",
-    "ts-essentials": "^9.3.2"
   }
 }

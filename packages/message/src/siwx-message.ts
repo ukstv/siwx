@@ -92,18 +92,18 @@ export class SiwxMessage implements SiwxMessageFields {
   }
 }
 
-export function fromStringSafe(input: string): Maybe<SiwxMessage> {
+function fromStringSafe(input: string): Maybe<SiwxMessage> {
   const parser = parseAll(siwxMessage);
   const fields = parser(new StringTape(input));
   if (isLeft(fields)) return fields;
   return right(new SiwxMessage(fields.right));
 }
 
-export function fromString(input: string): SiwxMessage {
+function fromString(input: string): SiwxMessage {
   return getOrThrow(fromStringSafe(input));
 }
 
-export function toString(message: SiwxMessage): string {
+function toString(message: SiwxMessage): string {
   const want = `${message.domain} wants you to sign in with your ${message.network} account:`;
   const address = message.address;
   const statement = message.statement;

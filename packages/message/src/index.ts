@@ -1,4 +1,4 @@
-export { SiwxMessage, SiwxMessageFields, toString, fromString, fromStringSafe } from "./siwx-message.js";
+export { SiwxMessage, SiwxMessageFields } from "./siwx-message.js";
 export type {
   DomainString,
   NetworkString,
