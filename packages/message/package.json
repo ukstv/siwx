@@ -1,0 +1,17 @@
+{
+  "name": "@siwx/message",
+  "version": "0.0.2",
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc -p .",
+    "test": "../../node_modules/.bin/tsm ../../node_modules/uvu/bin.js . .+\\.test\\.ts",
+    "test:watch": "../../node_modules/.bin/watchlist --eager src -- pnpm run test",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "codeco": "^1.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "ts-essentials": "^9.3.2"
+  }
+}
