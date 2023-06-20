@@ -26,7 +26,10 @@ async function populateProviderFields<TAuth extends Auth | Signer>(
   };
 }
 
-async function request<TAuth extends Auth | Signer>(auth: TAuth, fields: RequestFields<TAuth>) {
+async function request<TAuth extends Auth | Signer>(
+  auth: TAuth,
+  fields: RequestFields<TAuth>
+): Promise<SignedSiwxMessage> {
   const fullFields = await populateProviderFields<TAuth>(auth, fields);
   const message = new SiwxMessage(fullFields);
   const signature = await auth.sign(fromString(message.toString()));
@@ -36,11 +39,3 @@ async function request<TAuth extends Auth | Signer>(auth: TAuth, fields: Request
 export class SIWx {
   static request = request;
 }
-
-// const provider = () => 3;
-// const signer = {
-//   sign: async (input: Uint8Array): Promise<Uint8Array> => input,
-// };
-// SIWx.request(signer, {
-//
-// });
