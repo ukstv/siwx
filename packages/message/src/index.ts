@@ -10,3 +10,4 @@ export type {
   NonceString,
   DateTimeString,
 } from "./fields.js";
+export { SignedSiwxMessage, Signature } from "./signed-siwx-message.js";
