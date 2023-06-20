@@ -58,30 +58,22 @@ export function normalizeAccountId(input: AccountId): AccountId {
   });
 }
 
-export async function getChainId<TProvider = unknown>(provider: TProvider): Promise<ChainId> {
+export async function getChainId(provider: any): Promise<ChainId> {
   const referenceHex = await safeSend<string>(provider, "eth_chainId");
   const reference = String(parseInt(referenceHex, 16));
   return new ChainId({ namespace: CHAIN_NAMESPACE, reference });
 }
 
-export async function getAccountId<TProvider = unknown>(provider: TProvider, address?: string): Promise<AccountId> {
-  const ethChainId = await getChainId(provider);
-  const chainId = `${CHAIN_NAMESPACE}:${ethChainId}`;
-  if (address) {
-    return new AccountId({ address: address.toLowerCase(), chainId: chainId });
-  } else {
-    const addresses = await safeSend<string[]>(provider, "eth_accounts");
-    const address = addresses[0];
-    return new AccountId({ address: address.toLowerCase(), chainId: chainId });
-  }
+export async function getAccountId(provider: any): Promise<AccountId> {
+  const chainId = await getChainId(provider);
+  const addresses = await safeSend<string[]>(provider, "eth_accounts");
+  const address = addresses[0];
+  return new AccountId({ address: address.toLowerCase(), chainId: chainId });
 }
 
-export async function sign<TProvider = unknown>(
-  provider: TProvider,
-  input: Uint8Array,
-  accountId?: AccountId
-): Promise<Signature> {
-  const address = normalizeAccountId(accountId || (await getAccountId(provider))).address;
+export async function sign(provider: any, input: Uint8Array, accountId?: AccountId): Promise<Signature> {
+  accountId ||= await getAccountId(provider);
+  const address = normalizeAccountId(accountId).address;
   const hexPayload = `0x${toString(input, "base16")}`;
   const signatureP = safeSend<string>(provider, "personal_sign", [hexPayload, address]).catch(() => {
     return safeSend<string>(provider, "eth_sign", [address, hexPayload]);
@@ -92,16 +84,21 @@ export async function sign<TProvider = unknown>(
 }
 
 export function fromEthereumProvider(provider: any, accountId?: AccountId): Auth {
+  const accountIdFn = async () => {
+    return accountId ? accountId : getAccountId(provider);
+  };
   return {
     network: "Ethereum",
-    accountId: () => getAccountId(provider, accountId?.address),
-    sign: (input: Uint8Array) => sign(provider, input, accountId),
+    accountId: accountIdFn,
+    sign: async (input: Uint8Array) => {
+      return sign(provider, input, await accountIdFn());
+    },
   };
 }
 
-function hexToSignature(hex: string, code: string | null | undefined): Signature {
+function hexToSignature(hex: string, code: string = "0x"): Signature {
   const signatureBytes = fromString(hex.replace(/^0x/, ""), "hex");
-  const kind = code === `0x` ? "eip1271" : "eip191";
+  const kind = code === `0x` ? "eip191" : "eip1271";
   // For SC signature, check if the address is a contract
   return {
     kind: kind,
@@ -115,6 +112,7 @@ function hexToSignature(hex: string, code: string | null | undefined): Signature
  * @param address - Ethereum address
  * @param chainId - Chain ID
  * @param signFn - WAGMI sign hook
+ * @param publicClient
  */
 export function fromSignFunction(
   address: string,
@@ -124,7 +122,7 @@ export function fromSignFunction(
 ): Auth {
   const accountId = new AccountId({
     address,
-    chainId: new ChainId({ namespace: CHAIN_NAMESPACE, reference: String(chainId) }),
+    chainId: `${CHAIN_NAMESPACE}:${chainId}`,
   });
   return {
     network: "Ethereum",
