@@ -1,6 +1,5 @@
 import { AccountId, ChainId } from "caip";
 import type { Signature } from "@siwx/message";
-import { toString } from "uint8arrays/to-string";
 import type { Auth, SigningInput } from "./auth.js";
 
 export const CHAIN_NAMESPACE = "solana";
