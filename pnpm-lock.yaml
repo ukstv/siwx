@@ -29,6 +29,9 @@ importers:
       '@siwx/message':
         specifier: workspace:*
         version: link:../message
+      '@stablelib/random':
+        specifier: ^1.0.2
+        version: 1.0.2
       caip:
         specifier: ^1.1.0
         version: 1.1.0
@@ -42,6 +45,9 @@ importers:
 
   packages/message:
     dependencies:
+      '@stablelib/random':
+        specifier: ^1.0.2
+        version: 1.0.2
       codeco:
         specifier: ^1.1.4
         version: 1.1.4
@@ -49,6 +55,9 @@ importers:
       '@types/node':
         specifier: ^20.3.1
         version: 20.3.1
+      caip:
+        specifier: ^1.1.0
+        version: 1.1.0
       ts-essentials:
         specifier: ^9.3.2
         version: 9.3.2(typescript@5.1.3)
@@ -106,6 +115,27 @@ packages:
       '@scure/base': 1.1.1
     dev: true
 
+  /@stablelib/binary@1.0.1:
+    resolution: {integrity: sha512-ClJWvmL6UBM/wjkvv/7m5VP3GMr9t0osr4yVgLZsLCOz4hGN9gIAFEqnJ0TsSMAN+n840nf2cHZnA5/KFqHC7Q==}
+    dependencies:
+      '@stablelib/int': 1.0.1
+    dev: false
+
+  /@stablelib/int@1.0.1:
+    resolution: {integrity: sha512-byr69X/sDtDiIjIV6m4roLVWnNNlRGzsvxw+agj8CIEazqWGOQp2dTYgQhtyVXV9wpO6WyXRQUzLV/JRNumT2w==}
+    dev: false
+
+  /@stablelib/random@1.0.2:
+    resolution: {integrity: sha512-rIsE83Xpb7clHPVRlBj8qNe5L8ISQOzjghYQm/dZ7VaM2KHYwMW5adjQjrzTZCchFnNCNhkwtnOBa9HTMJCI8w==}
+    dependencies:
+      '@stablelib/binary': 1.0.1
+      '@stablelib/wipe': 1.0.1
+    dev: false
+
+  /@stablelib/wipe@1.0.1:
+    resolution: {integrity: sha512-WfqfX/eXGiAd3RJe4VU2snh/ZPwtSjLG4ynQ/vYzvghTh7dHFcI1wl+nrkWG6lGhukOxOsUHfv8dUXr58D0ayg==}
+    dev: false
+
   /@types/node@20.3.1:
     resolution: {integrity: sha512-EhcH/wvidPy1WeML3TtYFGR83UzjxeWRen9V402T8aUGYsCHOmfoisV3ZSg03gAFIbLq8TnWOJ0f4cALtnSEUg==}
     dev: true
@@ -135,7 +165,6 @@ packages:
 
   /caip@1.1.0:
     resolution: {integrity: sha512-yOO3Fu4ygyKYAdznuoaqschMKIZzcdgyMpBNtrIfrUhnOeaOWG+dh0c13wcOS6B/46IGGbncoyzJlio79jU7rw==}
-    dev: false
 
   /codeco@1.1.4:
     resolution: {integrity: sha512-qe6EIbv1Vqak9Ti44yMC0K0Ser3o0+3OX7FdiUU5WbEjHfUhnEOfC7H1HGFhNjWKZlk4eAvr51QgwK4gtLS/NQ==}

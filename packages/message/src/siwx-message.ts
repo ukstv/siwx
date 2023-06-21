@@ -21,6 +21,8 @@ import type {
 import { siwxMessage } from "./parsing/siwx-message.js";
 import { StringTape, parseAll } from "codeco/linear";
 import { isLeft, right, getOrThrow, type Maybe } from "codeco";
+import type { AccountId } from "caip";
+import { randomStringForEntropy } from "@stablelib/random";
 
 /**
  * Parameters for SiwxMessage constructor.
@@ -33,7 +35,7 @@ export interface SiwxMessageFields {
   readonly uri: string;
   readonly version?: string | number;
   readonly chainId: string | number;
-  readonly nonce: string | number;
+  readonly nonce: string;
   readonly issuedAt: string;
   readonly expirationTime?: string;
   readonly notBefore?: string;
@@ -45,7 +47,7 @@ function resourcesList(resources: Array<string>): string {
   return resources.map((r) => `- ${r}`).join(`\n`);
 }
 
-export class SiwxMessage implements SiwxMessageFields {
+export class SiwxMessage {
   readonly domain: DomainString;
   readonly network: NetworkString;
   readonly address: AddressString;
@@ -59,6 +61,8 @@ export class SiwxMessage implements SiwxMessageFields {
   readonly notBefore?: DateTimeString;
   readonly requestId?: NonEmptyString;
   readonly resources?: Array<URIString>;
+
+  static make = make;
 
   /**
    * Parse SIWx message string.
@@ -128,4 +132,48 @@ function toString(message: SiwxMessage): string {
  */
 function mapUndefined<T, R>(field: T | undefined, fn: (value: T) => R): R | undefined {
   if (field !== undefined) return fn(field);
+}
+
+export type BuildFields = {
+  readonly domain: string;
+  readonly uri: string;
+  readonly statement?: string;
+  readonly nonce?: string;
+  readonly issuedAt?: string | Date;
+  readonly expirationTime?: string | Date;
+  readonly notBefore?: string | Date;
+  readonly requestId?: string;
+  readonly resources?: Array<string>;
+};
+
+function makeDate(original: string | Date | undefined | null, preferred: Date): string {
+  if (!original) return preferred.toISOString();
+  if (typeof original === "string") return original;
+  return original.toISOString();
+}
+
+function makeExpirationTime(original: string | Date | undefined | null): string | undefined {
+  if (!original) return undefined;
+  if (typeof original === "string") return original;
+  return original.toISOString();
+}
+
+function make(network: string, accountId: AccountId, fields: BuildFields) {
+  const nonce = fields.nonce || randomStringForEntropy(96);
+  if (!nonce || nonce.length < 8) {
+    throw new Error("Error during nonce creation.");
+  }
+  const issuedAt = makeDate(fields.issuedAt, new Date());
+  const notBefore = makeDate(fields.notBefore, new Date());
+  const expirationTime = makeExpirationTime(fields.expirationTime);
+  return new SiwxMessage({
+    network: network,
+    address: accountId.address,
+    chainId: accountId.chainId.reference,
+    ...fields,
+    nonce,
+    expirationTime,
+    issuedAt,
+    notBefore,
+  });
 }

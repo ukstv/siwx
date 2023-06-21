@@ -4,14 +4,16 @@ import { toString } from "uint8arrays/to-string";
 import { fromString } from "uint8arrays/from-string";
 import type { Auth, SigningInput } from "./auth.js";
 
-export const CHAIN_NAMESPACE = "tezos";
+// TODO Add tz2 and tz3
+
+export const CHAIN_NAMESPACE = "Tezos";
 
 const REFERENCE_MAP = {
   mainnet: "NetXdQprcVkpaWU",
   devnet: "NetXm8tYqnMWky1",
 };
 
-type TezosNetwork = "mainnet" | "devnet";
+type TezosNetwork = keyof typeof REFERENCE_MAP;
 
 type SupportedProvider = {
   requestSignPayload: (opts: { signingType: string; payload: string }) => Promise<{ signature: string }>;

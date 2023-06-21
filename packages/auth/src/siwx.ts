@@ -1,8 +1,9 @@
 import { isAuth, type Signer, type Auth } from "./auth.js";
-import type { SiwxMessageFields } from "@siwx/message";
+import type { BuildFields, SiwxMessageFields } from "@siwx/message";
 import { SiwxMessage } from "@siwx/message";
 import { fromString } from "uint8arrays/from-string";
 import { SignedSiwxMessage } from "@siwx/message";
+import { AccountId } from "caip";
 
 export type RequestFields<TAuth extends Signer> = TAuth extends Auth
   ? Omit<SiwxMessageFields, "network" | "address" | "chainId">
@@ -38,4 +39,18 @@ async function request<TAuth extends Auth | Signer>(
 
 export class SIWx {
   static request = request;
+  static make = make;
+
+  constructor(readonly message: SiwxMessage) {}
+
+  async sign(signFn: Signer["sign"]): Promise<SignedSiwxMessage> {
+    const signingInput = fromString(this.message.toString());
+    const signature = await signFn(signingInput);
+    return new SignedSiwxMessage(this.message, signature);
+  }
+}
+
+function make(network: string, accountId: AccountId, params: BuildFields) {
+  const message = SiwxMessage.make(network, accountId, params);
+  return new SIWx(message);
 }

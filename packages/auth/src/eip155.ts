@@ -74,7 +74,7 @@ export async function getAccountId(provider: any): Promise<AccountId> {
 export async function sign(provider: any, input: Uint8Array, accountId?: AccountId): Promise<Signature> {
   accountId ||= await getAccountId(provider);
   const address = normalizeAccountId(accountId).address;
-  const hexPayload = `0x${toString(input, "base16")}`;
+  const hexPayload = `0x${toString(input, "hex")}`;
   const signatureP = safeSend<string>(provider, "personal_sign", [hexPayload, address]).catch(() => {
     return safeSend<string>(provider, "eth_sign", [address, hexPayload]);
   });

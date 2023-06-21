@@ -2,7 +2,7 @@ import { AccountId, ChainId } from "caip";
 import type { Signature } from "@siwx/message";
 import type { Auth, SigningInput } from "./auth.js";
 
-export const CHAIN_NAMESPACE = "solana";
+export const CHAIN_NAMESPACE = "Solana";
 
 type WithSignMessage = {
   signMessage: (message: Uint8Array, type: "utf8") => Promise<{ signature: Uint8Array }>;
