@@ -1,7 +1,7 @@
 import { AccountId, ChainId } from "caip";
 import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
-import type { Auth } from "./auth.js";
+import type { Auth, Signer, SignFn, SigningInput } from "./auth.js";
 import type { Signature } from "@siwx/message";
 import type { PublicClient } from "viem";
 
@@ -133,5 +133,12 @@ export function fromSignFunction(
       const [signature, code] = await Promise.all([signatureP, codeP]);
       return hexToSignature(signature, code);
     },
+  };
+}
+
+export function fromViem(signFn: (input: { message: string }) => Promise<`0x${string}`>): SignFn {
+  return async function (input: SigningInput) {
+    const signature = await signFn({ message: toString(input) });
+    return hexToSignature(signature, undefined);
   };
 }

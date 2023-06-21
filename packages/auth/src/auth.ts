@@ -3,8 +3,10 @@ import type { Signature } from "@siwx/message";
 
 export type SigningInput = Uint8Array;
 
+export type SignFn = (input: SigningInput) => Promise<Signature>;
+
 export interface Signer {
-  sign(input: SigningInput): Promise<Signature>;
+  readonly sign: SignFn;
 }
 
 export interface Auth extends Signer {

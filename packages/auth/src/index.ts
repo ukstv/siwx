@@ -1,1 +1,1 @@
-export const foo = 3
+export { SIWx } from "./siwx.js";
