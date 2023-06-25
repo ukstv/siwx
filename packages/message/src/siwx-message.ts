@@ -21,7 +21,7 @@ import type {
 import { siwxMessage } from "./parsing/siwx-message.js";
 import { StringTape, parseAll } from "codeco/linear";
 import { isLeft, right, getOrThrow, type Maybe } from "codeco";
-import type { AccountId } from "caip";
+import { AccountId } from "caip";
 import { randomStringForEntropy } from "@stablelib/random";
 
 /**
@@ -91,6 +91,12 @@ export class SiwxMessage {
     this.resources = mapUndefined(fields.resources, (resources) => resources.map(toURIString));
   }
 
+  get accountId(): AccountId {
+    const network = CHAIN_NAMESPACE_BY_NETWORK[this.network];
+    if (!network) throw new Error(`Unsupported network ${this.network}`);
+    return new AccountId({ address: this.address, chainId: `${network}:${this.chainId}` });
+  }
+
   toString(): string {
     return toString(this);
   }
@@ -134,7 +140,7 @@ function mapUndefined<T, R>(field: T | undefined, fn: (value: T) => R): R | unde
   if (field !== undefined) return fn(field);
 }
 
-export type BuildFields = {
+export type MakeFields = {
   readonly domain: string;
   readonly uri: string;
   readonly statement?: string;
@@ -162,7 +168,7 @@ function makeExpirationTime(original: string | Date | undefined | null): string 
   return asISO(original);
 }
 
-function make(network: string, accountId: AccountId, fields: BuildFields) {
+function make(accountId: AccountId, fields: MakeFields) {
   const nonce = fields.nonce || randomStringForEntropy(96);
   if (!nonce || nonce.length < 8) {
     throw new Error("Error during nonce creation.");
@@ -171,7 +177,7 @@ function make(network: string, accountId: AccountId, fields: BuildFields) {
   const notBefore = makeDate(fields.notBefore, new Date());
   const expirationTime = makeExpirationTime(fields.expirationTime);
   return new SiwxMessage({
-    network: network,
+    network: networkForAccountId(accountId),
     address: accountId.address,
     chainId: accountId.chainId.reference,
     ...fields,
@@ -180,4 +186,29 @@ function make(network: string, accountId: AccountId, fields: BuildFields) {
     issuedAt,
     notBefore,
   });
+}
+
+export const NETWORK_BY_CHAIN_NAMESPACE = {
+  eip155: "Ethereum",
+  tezos: "Tezos",
+  solana: "Solana",
+};
+
+type Transposed<A extends object> = { [P in keyof A]: A[P] };
+
+export const CHAIN_NAMESPACE_BY_NETWORK = Object.entries(NETWORK_BY_CHAIN_NAMESPACE).reduce<
+  Record<string, string | undefined>
+>((acc, entry) => {
+  const network = entry[1];
+  if (network) {
+    acc[network] = entry[0];
+  }
+  return acc;
+}, {});
+
+export function networkForAccountId(accountId: AccountId): string {
+  const chainId = accountId.chainId;
+  const found = NETWORK_BY_CHAIN_NAMESPACE[chainId.namespace as keyof typeof NETWORK_BY_CHAIN_NAMESPACE];
+  if (found) return found;
+  throw new Error(`Unsupported namespace ${chainId.namespace}`);
 }

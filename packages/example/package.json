@@ -7,6 +7,7 @@
     "dev": "./node_modules/.bin/parcel ./src/index.html"
   },
   "dependencies": {
+    "@airgap/beacon-sdk": "^4.0.4",
     "@nanostores/react": "^0.7.1",
     "@rainbow-me/rainbowkit": "^1.0.2",
     "@siwx/auth": "workspace:*",

@@ -6,7 +6,7 @@ import type { Auth, SigningInput } from "./auth.js";
 
 // TODO Add tz2 and tz3
 
-export const CHAIN_NAMESPACE = "Tezos";
+export const CHAIN_NAMESPACE = "tezos";
 
 const REFERENCE_MAP = {
   mainnet: "NetXdQprcVkpaWU",
@@ -18,6 +18,7 @@ type TezosNetwork = keyof typeof REFERENCE_MAP;
 type SupportedProvider = {
   requestSignPayload: (opts: { signingType: string; payload: string }) => Promise<{ signature: string }>;
   getActiveAccount: () => Promise<{ network: { type: TezosNetwork }; publicKey: string; address: string }>;
+  requestPermissions: SupportedProvider["getActiveAccount"];
 };
 
 function assertSupportedProvider(provider: any): asserts provider is SupportedProvider {
@@ -28,7 +29,8 @@ function assertSupportedProvider(provider: any): asserts provider is SupportedPr
 
 export async function getChainId(provider: any): Promise<ChainId> {
   assertSupportedProvider(provider);
-  const activeAccount = await provider.getActiveAccount();
+  let activeAccount = await provider.getActiveAccount();
+  if (!activeAccount) activeAccount = await provider.requestPermissions();
   const network = activeAccount.network.type;
   const reference = REFERENCE_MAP[network];
   if (!reference) throw new Error(`Unknown network: ${network}`);
@@ -40,7 +42,8 @@ export async function getChainId(provider: any): Promise<ChainId> {
  */
 export async function getAccountId(provider: any): Promise<AccountId> {
   assertSupportedProvider(provider);
-  const activeAccount = await provider.getActiveAccount();
+  let activeAccount = await provider.getActiveAccount();
+  if (!activeAccount) activeAccount = await provider.requestPermissions();
   const network = activeAccount.network.type;
   const reference = REFERENCE_MAP[network];
   if (!reference) throw new Error(`Unknown network: ${network}`);
@@ -53,13 +56,14 @@ export async function sign(provider: any, input: SigningInput): Promise<Signatur
   const inputHex = toString(input, "hex");
   const bytesLength = (inputHex.length / 2).toString(16);
   const payload = "05" + "01" + bytesLength.padStart(8, "0") + inputHex;
-  const { signature } = await provider.requestSignPayload({
+  const rs = await provider.requestSignPayload({
     signingType: "micheline",
     payload: payload,
   });
+  console.log("tezos-signature", rs);
   return {
     kind: "tezos:ed25519",
-    bytes: fromString(signature),
+    bytes: fromString(rs.signature),
   };
 }
 

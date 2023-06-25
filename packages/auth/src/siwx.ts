@@ -1,38 +1,30 @@
 import { isAuth, type Signer, type Auth } from "./auth.js";
-import type { BuildFields, SiwxMessageFields } from "@siwx/message";
+import type { MakeFields, SiwxMessageFields } from "@siwx/message";
 import { SiwxMessage } from "@siwx/message";
 import { fromString } from "uint8arrays/from-string";
 import { SignedSiwxMessage } from "@siwx/message";
 import { AccountId } from "caip";
 
-export type RequestFields<TAuth extends Signer> = TAuth extends Auth
-  ? Omit<SiwxMessageFields, "network" | "address" | "chainId">
-  : SiwxMessageFields;
+export type RequestFields<TAuth extends Auth | Signer> = TAuth extends Auth ? MakeFields : SiwxMessageFields;
 
 async function populateProviderFields<TAuth extends Auth | Signer>(
   auth: TAuth,
   fields: RequestFields<TAuth>
-): Promise<SiwxMessageFields> {
+): Promise<SiwxMessage> {
   const hasProviderFields = "network" in fields && "address" in fields && "chainId" in fields;
   if (hasProviderFields) {
-    return fields;
+    return new SiwxMessage(fields);
   }
   if (!isAuth(auth)) throw new Error(`No provider fields present`);
   const accountId = await auth.accountId();
-  return {
-    ...fields,
-    network: auth.network,
-    chainId: accountId.chainId.reference,
-    address: accountId.address,
-  };
+  return SiwxMessage.make(accountId, fields);
 }
 
 async function request<TAuth extends Auth | Signer>(
   auth: TAuth,
   fields: RequestFields<TAuth>
 ): Promise<SignedSiwxMessage> {
-  const fullFields = await populateProviderFields<TAuth>(auth, fields);
-  const message = new SiwxMessage(fullFields);
+  const message = await populateProviderFields<TAuth>(auth, fields);
   const signature = await auth.sign(fromString(message.toString()));
   return new SignedSiwxMessage(message, signature);
 }
@@ -50,7 +42,7 @@ export class SIWx {
   }
 }
 
-function make(network: string, accountId: AccountId, params: BuildFields) {
-  const message = SiwxMessage.make(network, accountId, params);
+function make(accountId: AccountId, params: MakeFields) {
+  const message = SiwxMessage.make(accountId, params);
   return new SIWx(message);
 }

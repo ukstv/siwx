@@ -3,6 +3,7 @@ import { useStore } from "@nanostores/react";
 import { toHex } from "viem";
 import { $account } from "./account";
 import { RainbowProvider, WithEthereum } from "./ethereum";
+import { WithTezos } from "./tezos";
 
 function SignIn() {
   return (
@@ -13,7 +14,7 @@ function SignIn() {
           <WithEthereum />
         </li>
         <li>
-          <button className={"tezos"}>Tezos</button>
+          <WithTezos />
         </li>
         <li>
           <button className={"solana"}>Solana</button>

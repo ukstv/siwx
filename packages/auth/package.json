@@ -23,6 +23,10 @@
     "./eip155": {
       "types": "./dist/eip155.d.ts",
       "default": "./dist/eip155.js"
+    },
+    "./tezos": {
+      "types": "./dist/tezos.d.ts",
+      "default": "./dist/tezos.js"
     }
   },
   "dependencies": {

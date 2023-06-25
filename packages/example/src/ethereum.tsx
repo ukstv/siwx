@@ -27,7 +27,7 @@ export function WithEthereum() {
       connector.getChainId().then(async (chainId) => {
         const accountId = new AccountId({ address: address, chainId: `eip155:${chainId}` });
         const walletClient = await connector.getWalletClient();
-        const signedSiwxMessage = await SIWx.make("Ethereum", accountId, {
+        const signedSiwxMessage = await SIWx.make(accountId, {
           domain: window.location.host,
           uri: window.location.origin,
         }).sign(fromViem(walletClient.signMessage));
