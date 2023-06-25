@@ -1,20 +1,23 @@
 import React, { useCallback } from "react";
-import { createNanoEvents } from "nanoevents";
-import { RainbowKitProvider, connectorsForWallets, useConnectModal } from "@rainbow-me/rainbowkit";
+import {
+  RainbowKitProvider,
+  connectorsForWallets,
+  useConnectModal,
+  type AuthenticationStatus,
+} from "@rainbow-me/rainbowkit";
 import { WagmiConfig, createConfig, configureChains, useAccount, useDisconnect } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
 import { QueryClient } from "@tanstack/react-query";
 import { polygon, mainnet } from "wagmi/chains";
 import { injectedWallet, metaMaskWallet, rainbowWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
 import { AccountId } from "caip";
-import {
-  AuthenticationAdapter,
-  AuthenticationStatus,
-} from "@rainbow-me/rainbowkit/dist/components/RainbowKitProvider/AuthenticationContext";
-import { SignedSiwxMessage, SiwxMessage } from "@siwx/message";
+import { SignedSiwxMessage } from "@siwx/message";
 import { GetAccountResult } from "@wagmi/core";
 import { SIWx } from "@siwx/auth";
 import { fromViem } from "@siwx/auth/eip155";
+import { map } from "nanostores";
+import { useStore } from "@nanostores/react";
+import { toHex } from "viem";
 
 const { publicClient, webSocketPublicClient, chains } = configureChains([mainnet, polygon], [publicProvider()]);
 
@@ -42,57 +45,6 @@ const config = createConfig({
 interface Events {
   status: (status: AuthenticationStatus) => void;
 }
-
-class RainbowAuthenticationAdapter implements AuthenticationAdapter<SiwxMessage> {
-  #status: AuthenticationStatus = "unauthenticated";
-  readonly events = createNanoEvents<Events>();
-
-  get status(): AuthenticationStatus {
-    return this.#status;
-  }
-
-  set status(value: AuthenticationStatus) {
-    this.events.emit("status", value);
-    this.#status = value;
-  }
-
-  async getNonce() {
-    return "33";
-  }
-
-  createMessage(args: { nonce: string; address: string; chainId: number }) {
-    const accountId = new AccountId({ address: args.address, chainId: `eip155:${args.chainId}` });
-    return SiwxMessage.make("Ethereum", accountId, {
-      domain: window.location.host,
-      uri: window.location.origin,
-    });
-  }
-
-  getMessageBody(args: { message: SiwxMessage }) {
-    return args.message.toString();
-  }
-
-  async verify(args: { message: SiwxMessage; signature: string }) {
-    this.status = "authenticated";
-    console.log("s", args.signature);
-    // const signed = new SignedSiwxMessage(args.message, )
-    return true;
-  }
-
-  async signOut() {
-    console.log("signOut");
-  }
-}
-
-const aa = new RainbowAuthenticationAdapter();
-
-function ConnectedAs() {
-  return <div>Connected</div>;
-}
-
-import { map } from "nanostores";
-import { useStore } from "@nanostores/react";
-import { toHex } from "viem";
 
 type $Account =
   | {

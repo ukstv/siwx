@@ -114,9 +114,6 @@ importers:
       caip:
         specifier: ^1.1.0
         version: 1.1.0
-      nanoevents:
-        specifier: ^7.0.1
-        version: 7.0.1
       nanostores:
         specifier: ^0.9.2
         version: 0.9.2
@@ -4134,11 +4131,6 @@ packages:
 
   /multiformats@9.9.0:
     resolution: {integrity: sha512-HoMUjhH9T8DDBNT+6xzkrd9ga/XiBI4xLr58LJACwK6G3HTOPeMz4nB4KJs33L2BelrIJa7P0VuNaVF3hMYfjg==}
-    dev: false
-
-  /nanoevents@7.0.1:
-    resolution: {integrity: sha512-o6lpKiCxLeijK4hgsqfR6CNToPyRU3keKyyI6uwuHRvpRTbZ0wXw51WRgyldVugZqoJfkGFrjrIenYH3bfEO3Q==}
-    engines: {node: ^14.0.0 || ^16.0.0 || >=18.0.0}
     dev: false
 
   /nanostores@0.9.2:
