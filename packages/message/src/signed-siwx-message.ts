@@ -1,11 +1,11 @@
 import type { SiwxMessage } from "./siwx-message.js";
 
-export type Signature = {
-  kind: string,
-  bytes: Uint8Array
+export interface Signature {
+  readonly kind: string;
+  readonly bytes: Uint8Array;
+  toString(): string;
 }
 
 export class SignedSiwxMessage {
-  constructor(readonly message: SiwxMessage, readonly signature: Signature) {
-  }
+  constructor(readonly message: SiwxMessage, readonly signature: Signature) {}
 }

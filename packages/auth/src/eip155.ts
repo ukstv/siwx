@@ -96,14 +96,19 @@ export function fromEthereumProvider(provider: any, accountId?: AccountId): Auth
   };
 }
 
+export class EthereumSignature implements Signature {
+  constructor(readonly kind: string, readonly bytes: Uint8Array) {}
+
+  toString() {
+    return `0x${toString(this.bytes, "hex")}`;
+  }
+}
+
 function hexToSignature(hex: string, code: string = "0x"): Signature {
   const signatureBytes = fromString(hex.replace(/^0x/, ""), "hex");
   const kind = code === `0x` ? "eip191" : "eip1271";
   // For SC signature, check if the address is a contract
-  return {
-    kind: kind,
-    bytes: signatureBytes,
-  };
+  return new EthereumSignature(kind, signatureBytes);
 }
 
 /**

@@ -1,6 +1,7 @@
 import { AccountId, ChainId } from "caip";
 import type { Signature } from "@siwx/message";
 import type { Auth, SigningInput } from "./auth.js";
+import { toString } from "uint8arrays/to-string";
 
 export const CHAIN_NAMESPACE = "Solana";
 
@@ -35,15 +36,21 @@ export async function getAccountId(provider: any): Promise<AccountId> {
   return new AccountId({ address: retrievedAddress, chainId: chainId });
 }
 
+export class SolanaSignature implements Signature {
+  readonly kind = "solana:ed25519";
+  constructor(readonly bytes: Uint8Array) {}
+
+  toString(): string {
+    return toString(this.bytes, "hex");
+  }
+}
+
 export async function sign(provider: any, input: Uint8Array): Promise<Signature> {
   if (!hasSignMessage(provider)) {
     throw new Error(`Unsupported provider: must implement signMessage`);
   }
   const { signature } = await provider.signMessage(input, "utf8");
-  return {
-    kind: "solana:ed25519",
-    bytes: signature,
-  };
+  return new SolanaSignature(signature);
 }
 
 export function fromPhantom(provider: any): Auth {

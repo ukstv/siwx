@@ -51,6 +51,15 @@ export async function getAccountId(provider: any): Promise<AccountId> {
   return new AccountId({ address, chainId: new ChainId({ reference, namespace: CHAIN_NAMESPACE }) });
 }
 
+export class TezosSignature implements Signature {
+  readonly kind = "tezos:ed25519";
+  constructor(readonly bytes: Uint8Array) {}
+
+  toString(): string {
+    return toString(this.bytes);
+  }
+}
+
 export async function sign(provider: any, input: SigningInput): Promise<Signature> {
   assertSupportedProvider(provider);
   const inputHex = toString(input, "hex");
@@ -60,10 +69,7 @@ export async function sign(provider: any, input: SigningInput): Promise<Signatur
     signingType: "micheline",
     payload: payload,
   });
-  return {
-    kind: "tezos:ed25519",
-    bytes: fromString(rs.signature),
-  };
+  return new TezosSignature(fromString(rs.signature));
 }
 
 export function fromDappClient(provider: any): Auth {

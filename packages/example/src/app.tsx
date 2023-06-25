@@ -46,7 +46,10 @@ function DisplayAccount() {
         <code>{account.siwx.message.toString()}</code>
       </pre>
       <pre>
-        <code>{toHex(account.siwx.signature.bytes)}</code>
+        <code>
+          {account.siwx.signature.kind}
+          {": " + account.siwx.signature.toString()}
+        </code>
       </pre>
       <p>
         <button onClick={handleDisconnect}>Disconnect</button>
