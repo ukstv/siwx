@@ -1,0 +1,28 @@
+.container {
+  text-align: center;
+}
+
+.container h1 {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.container .sign-in-options {
+  list-style: none;
+  padding: 0;
+}
+
+.container .sign-in-options button {
+  border-radius: 1dvmin;
+  border: none;
+  background: oklch(39.8% 0.115 238.76);
+  color: white;
+  margin: 0.5rem 0;
+  padding: 0.5rem 1rem;
+  font-size: larger;
+  width: 30%;
+  cursor: pointer;
+}
+
+.sign-in-options button:hover {
+  background: oklch(70% 0.115 238.76);
+}
