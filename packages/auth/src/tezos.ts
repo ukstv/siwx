@@ -60,7 +60,6 @@ export async function sign(provider: any, input: SigningInput): Promise<Signatur
     signingType: "micheline",
     payload: payload,
   });
-  console.log("tezos-signature", rs);
   return {
     kind: "tezos:ed25519",
     bytes: fromString(rs.signature),
