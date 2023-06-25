@@ -146,16 +146,20 @@ export type BuildFields = {
   readonly resources?: Array<string>;
 };
 
+function asISO(date: Date) {
+  return date.toISOString().replace(/\.\d+Z/, "Z");
+}
+
 function makeDate(original: string | Date | undefined | null, preferred: Date): string {
-  if (!original) return preferred.toISOString();
+  if (!original) return asISO(preferred);
   if (typeof original === "string") return original;
-  return original.toISOString();
+  return asISO(original);
 }
 
 function makeExpirationTime(original: string | Date | undefined | null): string | undefined {
   if (!original) return undefined;
   if (typeof original === "string") return original;
-  return original.toISOString();
+  return asISO(original);
 }
 
 function make(network: string, accountId: AccountId, fields: BuildFields) {

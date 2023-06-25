@@ -1,24 +1,20 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import { createNanoEvents } from "nanoevents";
-import {
-  RainbowKitProvider,
-  ConnectButton,
-  connectorsForWallets,
-  createAuthenticationAdapter,
-  RainbowKitAuthenticationProvider,
-} from "@rainbow-me/rainbowkit";
-import { WagmiConfig, createConfig, configureChains, useConnect, useAccount, useChainId } from "wagmi";
+import { RainbowKitProvider, connectorsForWallets, useConnectModal } from "@rainbow-me/rainbowkit";
+import { WagmiConfig, createConfig, configureChains, useAccount, useDisconnect } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
 import { QueryClient } from "@tanstack/react-query";
 import { polygon, mainnet } from "wagmi/chains";
 import { injectedWallet, metaMaskWallet, rainbowWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
-import { useState } from "react";
 import { AccountId } from "caip";
 import {
   AuthenticationAdapter,
   AuthenticationStatus,
 } from "@rainbow-me/rainbowkit/dist/components/RainbowKitProvider/AuthenticationContext";
 import { SignedSiwxMessage, SiwxMessage } from "@siwx/message";
+import { GetAccountResult } from "@wagmi/core";
+import { SIWx } from "@siwx/auth";
+import { fromViem } from "@siwx/auth/eip155";
 
 const { publicClient, webSocketPublicClient, chains } = configureChains([mainnet, polygon], [publicProvider()]);
 
@@ -89,75 +85,78 @@ class RainbowAuthenticationAdapter implements AuthenticationAdapter<SiwxMessage>
 }
 
 const aa = new RainbowAuthenticationAdapter();
-const authenticationAdapter = createAuthenticationAdapter(aa);
 
 function ConnectedAs() {
   return <div>Connected</div>;
 }
 
-export function SignIn() {
+import { map } from "nanostores";
+import { useStore } from "@nanostores/react";
+import { toHex } from "viem";
+
+type $Account =
+  | {
+      kind: "ready";
+      accountId: AccountId;
+      siwx: SignedSiwxMessage;
+      disconnect: () => Promise<void>;
+    }
+  | { kind: "absent" };
+
+export const $account = map<$Account>({ kind: "absent" });
+
+function WithEthereum() {
+  const connectModal = useConnectModal();
+  const disconnect = useDisconnect();
+
+  useAccount({
+    onConnect({
+      address,
+      connector,
+    }: {
+      address?: GetAccountResult["address"];
+      connector?: GetAccountResult["connector"];
+    }) {
+      if (!connector || !address) return;
+      connector.getChainId().then(async (chainId) => {
+        const accountId = new AccountId({ address: address, chainId: `eip155:${chainId}` });
+        const walletClient = await connector.getWalletClient();
+        const signedSiwxMessage = await SIWx.make("Ethereum", accountId, {
+          domain: window.location.host,
+          uri: window.location.origin,
+        }).sign(fromViem(walletClient.signMessage));
+        $account.set({
+          kind: "ready",
+          siwx: signedSiwxMessage,
+          accountId: accountId,
+          disconnect: async () => {
+            await disconnect.disconnectAsync();
+            $account.set({ kind: "absent" });
+          },
+        });
+      });
+    },
+  });
+
+  const handleClick = useCallback(() => {
+    if (connectModal.connectModalOpen) return;
+    if (connectModal.openConnectModal) connectModal.openConnectModal();
+  }, [connectModal]);
+
+  return (
+    <button onClick={handleClick} type="button">
+      Ethereum
+    </button>
+  );
+}
+
+function SignIn() {
   return (
     <>
       <h1>Sign In With ...</h1>
       <ul className={"sign-in-options"}>
         <li>
-          <ConnectButton.Custom>
-            {({
-              account,
-              chain,
-              openAccountModal,
-              openChainModal,
-              openConnectModal,
-              authenticationStatus,
-              mounted,
-            }) => {
-              // Note: If your app doesn't use authentication, you
-              // can remove all 'authenticationStatus' checks
-              const ready = mounted && authenticationStatus !== "loading";
-              const connected =
-                ready && account && chain && (!authenticationStatus || authenticationStatus === "authenticated");
-
-              // const accountId = new AccountId({ address: account.address, chainId: `eip155:${chain.id}` });
-              // handleSignIn(accountId);
-
-              return (
-                <div
-                  {...(!ready && {
-                    "aria-hidden": true,
-                    style: {
-                      opacity: 0,
-                      pointerEvents: "none",
-                      userSelect: "none",
-                    },
-                  })}
-                >
-                  {(() => {
-                    if (!connected) {
-                      return (
-                        <button onClick={openConnectModal} type="button">
-                          Ethereum
-                        </button>
-                      );
-                    }
-
-                    if (chain.unsupported) {
-                      return (
-                        <button onClick={openChainModal} type="button">
-                          Wrong network
-                        </button>
-                      );
-                    }
-
-                    return (
-                      <button onClick={openConnectModal} type="button">
-                        Ethereum
-                      </button>
-                    );
-                  })()}
-                </div>
-              );
-            }}
-          </ConnectButton.Custom>
+          <WithEthereum />
         </li>
         <li>
           <button className={"tezos"}>Tezos</button>
@@ -174,22 +173,34 @@ export function SignIn() {
 }
 
 function DisplayAccount() {
-  return <p>Account</p>;
+  const account = useStore($account);
+  if (account.kind === "absent") return <></>;
+
+  const handleDisconnect = async () => {
+    await account.disconnect();
+  };
+
+  return (
+    <div>
+      <h2>Current account:</h2>
+      <pre>
+        <code>{account.accountId.toString()}</code>
+      </pre>
+      <p>SIWx message:</p>
+      <pre>
+        <code>{account.siwx.message.toString()}</code>
+      </pre>
+      <pre>
+        <code>{toHex(account.siwx.signature.bytes)}</code>
+      </pre>
+      <p>
+        <button onClick={handleDisconnect}>Disconnect</button>
+      </p>
+    </div>
+  );
 }
 
 export function App() {
-  const [authStatus, setAuthStatus] = useState(aa.status);
-
-  useEffect(() => {
-    setAuthStatus(authStatus);
-    const unsubscribe = aa.events.on("status", (status) => {
-      setAuthStatus(status);
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, [aa]);
-
   return (
     <WagmiConfig config={config}>
       <RainbowKitProvider chains={chains}>

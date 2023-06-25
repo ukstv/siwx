@@ -90,6 +90,9 @@ importers:
 
   packages/example:
     dependencies:
+      '@nanostores/react':
+        specifier: ^0.7.1
+        version: 0.7.1(nanostores@0.9.2)(react@18.2.0)
       '@rainbow-me/rainbowkit':
         specifier: ^1.0.2
         version: 1.0.2(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)(viem@1.0.7)(wagmi@1.2.1)
@@ -114,6 +117,9 @@ importers:
       nanoevents:
         specifier: ^7.0.1
         version: 7.0.1
+      nanostores:
+        specifier: ^0.9.2
+        version: 0.9.2
       parcel:
         specifier: 2.9.3
         version: 2.9.3
@@ -809,6 +815,17 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
+
+  /@nanostores/react@0.7.1(nanostores@0.9.2)(react@18.2.0):
+    resolution: {integrity: sha512-EXQg9N4MdI4eJQz/AZLIx3hxQ6BuBmV4Q55bCd5YCSgEOAW7tGTsIZxpRXxvxLXzflNvHTBvfrDNY38TlSVBkQ==}
+    engines: {node: ^16.0.0 || ^18.0.0 || >=20.0.0}
+    peerDependencies:
+      nanostores: ^0.9.0
+      react: '>=18.0.0'
+    dependencies:
+      nanostores: 0.9.2
+      react: 18.2.0
+    dev: false
 
   /@noble/curves@1.0.0:
     resolution: {integrity: sha512-2upgEu0iLiDVDZkNLeFV2+ht0BAVgQnEmCk6JsOch9Rp8xfkMCbvbAZlA2pBHQc73dbl+vFOXfqkf4uemdn0bw==}
@@ -4122,6 +4139,11 @@ packages:
   /nanoevents@7.0.1:
     resolution: {integrity: sha512-o6lpKiCxLeijK4hgsqfR6CNToPyRU3keKyyI6uwuHRvpRTbZ0wXw51WRgyldVugZqoJfkGFrjrIenYH3bfEO3Q==}
     engines: {node: ^14.0.0 || ^16.0.0 || >=18.0.0}
+    dev: false
+
+  /nanostores@0.9.2:
+    resolution: {integrity: sha512-wfKlqLGtOYV9+qzGveqDOSWZUBgTeMr/g+JzfV/GofXQ//0wp0cgHF+QBVlmNH/JW9YA9QN+vR6N0vpniPpARA==}
+    engines: {node: ^16.0.0 || ^18.0.0 || >=20.0.0}
     dev: false
 
   /node-addon-api@2.0.2:
