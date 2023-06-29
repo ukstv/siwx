@@ -3,20 +3,167 @@ import { configureChains, createConfig, useAccount, useDisconnect, WagmiConfig }
 import { GetAccountResult } from "@wagmi/core";
 import { AccountId } from "caip";
 import { SIWx } from "@siwx/auth";
-import { fromViem } from "@siwx/auth/eip155";
+import { fromViem, sign } from "@siwx/auth/eip155";
 import { $account } from "./account";
 import React, { PropsWithChildren, useCallback } from "react";
 import { mainnet, polygon } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import { injectedWallet, metaMaskWallet, rainbowWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
 import { QueryClient } from "@tanstack/react-query";
+import { AuthMethod, AuthMethodOpts, Cacao, SignatureType, SiweMessage } from "@didtools/cacao";
+import { SignedSiwxMessage } from "@siwx/message";
+import { DIDSession } from "did-session";
 
-export function WithEthereum() {
+// export function WithEthereum() {
+//   const connectModal = useConnectModal();
+//   const disconnect = useDisconnect();
+//
+//   useAccount({
+//     onConnect({
+//       address,
+//       connector,
+//     }: {
+//       address?: GetAccountResult["address"];
+//       connector?: GetAccountResult["connector"];
+//     }) {
+//       if (!connector || !address) return;
+//       connector.getChainId().then(async (chainId) => {
+//         const accountId = new AccountId({ address: address, chainId: `eip155:${chainId}` });
+//         const walletClient = await connector.getWalletClient();
+//         const signedSiwxMessage = await SIWx.make(accountId, {
+//           domain: window.location.host,
+//           uri: window.location.origin,
+//         }).sign(fromViem(walletClient.signMessage));
+//         $account.set({
+//           kind: "ready",
+//           siwx: signedSiwxMessage,
+//           accountId: accountId,
+//           disconnect: async () => {
+//             await disconnect.disconnectAsync();
+//             $account.set({ kind: "absent" });
+//           },
+//         });
+//       });
+//     },
+//   });
+//
+//   const handleClick = useCallback(() => {
+//     if (connectModal.connectModalOpen) return;
+//     if (connectModal.openConnectModal) connectModal.openConnectModal();
+//   }, [connectModal]);
+//
+//   return (
+//     <button onClick={handleClick} type="button">
+//       Ethereum
+//     </button>
+//   );
+// }
+
+class LegacySignedSiwxMessage implements SiweMessage {
+  constructor(readonly signed: SignedSiwxMessage) {}
+
+  get address(): string {
+    return this.signed.message.address;
+  }
+
+  get chainId(): string {
+    return this.signed.message.chainId;
+  }
+
+  get domain(): string {
+    return this.signed.message.domain;
+  }
+
+  get uri(): string {
+    return this.signed.message.uri;
+  }
+
+  get version(): string {
+    return this.signed.message.version;
+  }
+
+  get statement() {
+    return this.signed.message.statement;
+  }
+
+  get nonce() {
+    return this.signed.message.nonce;
+  }
+
+  get issuedAt(): string {
+    return this.signed.message.issuedAt;
+  }
+
+  get expirationTime() {
+    return this.signed.message.expirationTime;
+  }
+
+  get notBefore() {
+    return this.signed.message.notBefore;
+  }
+
+  get requestId() {
+    return this.signed.message.requestId;
+  }
+
+  get resources() {
+    return this.signed.message.resources;
+  }
+
+  get signature() {
+    return this.signed.signature.toString();
+  }
+
+  get type() {
+    return SignatureType.PERSONAL_SIGNATURE;
+  }
+
+  signMessage(): string {
+    return this.signed.message.toString();
+  }
+
+  toMessage(): string;
+  toMessage(chain: string): string;
+  toMessage(chain?: string): string {
+    return this.signed.message.toString();
+  }
+}
+
+export function WithEthereumCacao() {
   const connectModal = useConnectModal();
   const disconnect = useDisconnect();
 
+  //   useAccount({
+  //     onConnect({
+  //       address,
+  //       connector,
+  //     }: {
+  //       address?: GetAccountResult["address"];
+  //       connector?: GetAccountResult["connector"];
+  //     }) {
+  //       if (!connector || !address) return;
+  //       connector.getChainId().then(async (chainId) => {
+  //         const accountId = new AccountId({ address: address, chainId: `eip155:${chainId}` });
+  //         const walletClient = await connector.getWalletClient();
+  //         const signedSiwxMessage = await SIWx.make(accountId, {
+  //           domain: window.location.host,
+  //           uri: window.location.origin,
+  //         }).sign(fromViem(walletClient.signMessage));
+  //         $account.set({
+  //           kind: "ready",
+  //           siwx: signedSiwxMessage,
+  //           accountId: accountId,
+  //           disconnect: async () => {
+  //             await disconnect.disconnectAsync();
+  //             $account.set({ kind: "absent" });
+  //           },
+  //         });
+  //       });
+  //     },
+  //   });
+
   useAccount({
-    onConnect({
+    async onConnect({
       address,
       connector,
     }: {
@@ -24,16 +171,31 @@ export function WithEthereum() {
       connector?: GetAccountResult["connector"];
     }) {
       if (!connector || !address) return;
+      let signedSiwxMessage;
+
       connector.getChainId().then(async (chainId) => {
+        const authMethod: AuthMethod = async (opts: AuthMethodOpts): Promise<Cacao> => {
+          const accountId = new AccountId({ address: address, chainId: `eip155:${chainId}` });
+          const walletClient = await connector.getWalletClient();
+          signedSiwxMessage = await SIWx.make(accountId, {
+            domain: window.location.host,
+            uri: window.location.origin,
+            ...opts,
+          }).sign(fromViem(walletClient.signMessage));
+          return Cacao.fromSiweMessage(new LegacySignedSiwxMessage(signedSiwxMessage));
+        };
+
         const accountId = new AccountId({ address: address, chainId: `eip155:${chainId}` });
-        const walletClient = await connector.getWalletClient();
-        const signedSiwxMessage = await SIWx.make(accountId, {
-          domain: window.location.host,
-          uri: window.location.origin,
-        }).sign(fromViem(walletClient.signMessage));
+        const session = await DIDSession.authorize(authMethod, { resources: ["ceramic://nil"] });
+        const did = session.did;
+        const signature = await did.createJWS({ hello: "world" });
+
+        console.log("signature", signature);
+
+
         $account.set({
           kind: "ready",
-          siwx: signedSiwxMessage,
+          siwx: signedSiwxMessage!,
           accountId: accountId,
           disconnect: async () => {
             await disconnect.disconnectAsync();
@@ -51,7 +213,7 @@ export function WithEthereum() {
 
   return (
     <button onClick={handleClick} type="button">
-      Ethereum
+      Ethereum + CACAO (see console log)
     </button>
   );
 }

@@ -2,7 +2,8 @@ import React from "react";
 import { useStore } from "@nanostores/react";
 import { toHex } from "viem";
 import { $account } from "./account";
-import { RainbowProvider, WithEthereum } from "./ethereum";
+// import { RainbowProvider, WithEthereum, WithEthereumCacao } from "./ethereum";
+import { RainbowProvider, WithEthereumCacao } from "./ethereum";
 import { WithTezos } from "./tezos";
 
 function SignIn() {
@@ -10,8 +11,11 @@ function SignIn() {
     <>
       <h1>Sign In With ...</h1>
       <ul className={"sign-in-options"}>
+        {/*<li>*/}
+          {/*<WithEthereum />*/}
+        {/*</li>*/}
         <li>
-          <WithEthereum />
+          <WithEthereumCacao />
         </li>
         <li>
           <WithTezos />

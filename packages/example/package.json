@@ -16,6 +16,7 @@
     "@types/react": "^18.2.14",
     "@wagmi/core": "^1.2.1",
     "caip": "^1.1.0",
+    "did-session": "^2.0.1",
     "nanostores": "^0.9.2",
     "parcel": "2.9.3",
     "react": "^18.2.0",
@@ -25,5 +26,8 @@
   },
   "alias": {
     "preact/jsx-dev-runtime": "preact/jsx-runtime"
+  },
+  "devDependencies": {
+    "@didtools/cacao": "^2.1.0"
   }
 }
